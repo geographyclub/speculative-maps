@@ -91,8 +91,47 @@
             bearing: -23,
             pitch: 0
         });
+// rotation speed in degrees per second
+const speed = 1; // degrees per second (lower for smoothness)
+let userInteracting = false;
+let interactionTimeout;
+
+function rotateStep() {
+  if (!userInteracting) {
+    map.easeTo({
+      bearing: map.getBearing() - speed,
+      duration: 1000, // 1 second per small rotation
+      easing: t => t // linear
+    });
+  }
+  requestAnimationFrame(rotateStep);
+}
+
+function onUserInteraction() {
+  userInteracting = true;
+  clearTimeout(interactionTimeout);
+  interactionTimeout = setTimeout(() => {
+    userInteracting = false;
+  }, 1000);
+}
+
+map.on('load', () => {
+  rotateStep();
+  map.on('dragstart', onUserInteraction);
+  map.on('zoomstart', onUserInteraction);
+  map.on('rotatestart', onUserInteraction);
+  map.on('pitchstart', onUserInteraction);
+});
 
         map.on('load', () => {
+
+            map.setLight({
+            anchor: 'viewport',    // "map" is fixed to globe orientation
+            color: '#ffffff',
+            intensity: 1,
+            position: [1.5, 210, 30]  // r, azimuthal, polar
+        });
+
             // Disable zoom gestures
             map.scrollZoom.disable();        // mouse wheel
             map.doubleClickZoom.disable();   // double click
@@ -101,6 +140,7 @@
 
             // Disable rotation / tilt
             map.dragRotate.disable();
+
         });
 
     </script>
